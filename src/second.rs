@@ -31,6 +31,7 @@ impl<T> List<T> {
         //         Some(node.elem)
         //     }
         // }
+        // use take() since map would move the value
         self.head.take().map(|node| {
             self.head = node.next;
             node.elem
@@ -50,31 +51,7 @@ impl<T> List<T> {
             &mut node.elem
         })
     }
-}
 
-impl<T> Drop for List<T> {
-    fn drop(&mut self) {
-        let mut cur_link = self.head.take();
-        while let Some(mut boxed_node) = cur_link {
-            cur_link = boxed_node.next.take();
-            // boxed_node goes out of scope and gets dropped here;
-            // but its Node's `next` field has been set to None
-            // so no unbounded recursion occurs.
-        }
-    }
-}
-
-pub struct IntoIter<T>(List<T>);
-
-pub struct Iter<'a, T> {
-    next: Option<&'a Node<T>>,
-}
-
-pub struct IterMut<'a, T> {
-    next: Option<&'a mut Node<T>>,
-}
-
-impl<T> List<T> {
     pub fn into_iter(self) -> IntoIter<T> {
         IntoIter(self)
     }
@@ -93,12 +70,30 @@ impl<T> List<T> {
     }
 }
 
+impl<T> Drop for List<T> {
+    fn drop(&mut self) {
+        let mut cur_link = self.head.take();
+        while let Some(mut boxed_node) = cur_link {
+            cur_link = boxed_node.next.take();
+            // boxed_node goes out of scope and gets dropped here;
+            // but its Node's `next` field has been set to None
+            // so no unbounded recursion occurs.
+        }
+    }
+}
+
+pub struct IntoIter<T>(List<T>);
+
 impl<T> Iterator for IntoIter<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         // access fields of a tuple struct numerically
         self.0.pop()
     }
+}
+
+pub struct Iter<'a, T> {
+    next: Option<&'a Node<T>>,
 }
 
 impl<'a, T> Iterator for Iter<'a, T> {
@@ -109,6 +104,10 @@ impl<'a, T> Iterator for Iter<'a, T> {
             &node.elem
         })
     }
+}
+
+pub struct IterMut<'a, T> {
+    next: Option<&'a mut Node<T>>,
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
