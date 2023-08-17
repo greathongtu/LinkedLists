@@ -1,5 +1,5 @@
+use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
-use std::cell::{Ref, RefMut, RefCell};
 
 pub struct List<T> {
     head: Link<T>,
@@ -14,7 +14,6 @@ struct Node<T> {
     prev: Link<T>,
 }
 
-
 impl<T> Node<T> {
     fn new(elem: T) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Node {
@@ -27,7 +26,10 @@ impl<T> Node<T> {
 
 impl<T> List<T> {
     pub fn new() -> Self {
-        List { head: None, tail: None }
+        List {
+            head: None,
+            tail: None,
+        }
     }
 
     pub fn push_front(&mut self, elem: T) {
@@ -91,27 +93,27 @@ impl<T> List<T> {
     }
 
     pub fn peek_front(&self) -> Option<Ref<T>> {
-        self.head.as_ref().map(|node| {
-            Ref::map(node.borrow(), |node| &node.elem)
-        })
+        self.head
+            .as_ref()
+            .map(|node| Ref::map(node.borrow(), |node| &node.elem))
     }
 
     pub fn peek_back(&self) -> Option<Ref<T>> {
-        self.tail.as_ref().map(|node| {
-            Ref::map(node.borrow(), |node| &node.elem)
-        })
+        self.tail
+            .as_ref()
+            .map(|node| Ref::map(node.borrow(), |node| &node.elem))
     }
 
     pub fn peek_back_mut(&mut self) -> Option<RefMut<T>> {
-        self.tail.as_ref().map(|node| {
-            RefMut::map(node.borrow_mut(), |node| &mut node.elem)
-        })
+        self.tail
+            .as_ref()
+            .map(|node| RefMut::map(node.borrow_mut(), |node| &mut node.elem))
     }
 
     pub fn peek_front_mut(&mut self) -> Option<RefMut<T>> {
-        self.head.as_ref().map(|node| {
-            RefMut::map(node.borrow_mut(), |node| &mut node.elem)
-        })
+        self.head
+            .as_ref()
+            .map(|node| RefMut::map(node.borrow_mut(), |node| &mut node.elem))
     }
 
     pub fn into_iter(self) -> IntoIter<T> {
@@ -126,6 +128,8 @@ impl<T> Drop for List<T> {
 }
 
 pub struct IntoIter<T>(List<T>);
+// very hard to implement Iter and IterMut
+
 
 impl<T> Iterator for IntoIter<T> {
     type Item = T;
